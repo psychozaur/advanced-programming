@@ -1,4 +1,4 @@
-package com.rybicki.marcin;
+package com.rybicki.marcin.programming.advanced;
 
 public class HelloWorld {
 
