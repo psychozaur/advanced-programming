@@ -3,9 +3,11 @@ package com.rybicki.marcin.programming.advanced.animal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
 
 public class ZooWorker implements Runnable {
 
+    private Lock lock;
     private List<Animal> animals;
     private int timeInSec;
     private String name;
@@ -14,13 +16,14 @@ public class ZooWorker implements Runnable {
     private static BigInteger waterIncreaseLevel = BigInteger.valueOf(8);
 
     @SuppressWarnings("unchecked")
-    public ZooWorker(List<? extends Animal> animals, int timeInSec, String name) {
+    public ZooWorker(List<? extends Animal> animals, int timeInSec, String name, Lock lock) {
         this.animals = (List<Animal>) Objects.requireNonNull(animals);
         this.timeInSec = timeInSec;
         this.name = name;
+        this.lock = lock;
     }
 
-    //dlaczego ta metoda musi być statyczna?
+    //dlaczego ta metoda powinna być statyczna?
     private static void feedAnimal(Animal animal) {
         animal.eatAndDrink(foodIncreaseLevel, waterIncreaseLevel);
     }
@@ -30,7 +33,11 @@ public class ZooWorker implements Runnable {
 
         while(animals.size() > 0){
 
+            lock.lock();
+
             animals.forEach(ZooWorker::feedAnimal);
+
+            lock.unlock();
 
             try {
                 Thread.sleep(Utils.convertSecToMs(timeInSec));
@@ -43,13 +50,5 @@ public class ZooWorker implements Runnable {
         //this odnosi się do konretnego obiektu, który musiał być instancjonowany; z feedAnimal trzeba usunąć static wtedy
 //        animals.forEach(this::feedAnimal);
 
-//        animals.forEach((animal) -> {
-//            animal.eatAndDrink(foodIncreaseLevel,waterIncreaseLevel);
-//                }
-//        );
-
-//        for (Animal animal : animals){
-//            animal.eatAndDrink(foodIncreaseLevel,waterIncreaseLevel);
-//        }
     }
 }

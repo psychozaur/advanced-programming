@@ -5,6 +5,8 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
 
@@ -32,17 +34,17 @@ public class Main {
     public static void main(String[] args) {
 
         Random rng = new Random();
-
+        Lock lock = new ReentrantLock();
         List<Animal> animals = getPopulatedAnimalList(rng);
 
-        ZooWorker jas = new ZooWorker(animals,10 + rng.nextInt(10),"Jaś");
-        ZooWorker stas = new ZooWorker(animals,10 + rng.nextInt(10),"Staś");
+        ZooWorker jas = new ZooWorker(animals,10 + rng.nextInt(10),"Jaś",lock);
+        ZooWorker stas = new ZooWorker(animals,10 + rng.nextInt(10),"Staś",lock);
 
-        Stats stats = new Stats(animals,5);
+        Stats stats = new Stats(animals,5,lock);
 
-        Metabolism metabolism = new Metabolism(animals,1 + rng.nextInt(5));
+        Metabolism metabolism = new Metabolism(animals,1 + rng.nextInt(5),lock);
 
-        Mortician morty = new Mortician(animals,7);
+        Mortician morty = new Mortician(animals,7,lock);
 
         // 1st way
         Thread one = new Thread(metabolism);

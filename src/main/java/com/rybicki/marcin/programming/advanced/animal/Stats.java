@@ -3,6 +3,7 @@ package com.rybicki.marcin.programming.advanced.animal;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,6 +15,7 @@ public class Stats implements Runnable {
     // martwe
     // sumaryczna ilość jedzenia/wody per zwierzę :D
 
+    private Lock lock;
     private final List<Animal> animals;
     private final int timeIntervalInSec;
 
@@ -24,9 +26,10 @@ public class Stats implements Runnable {
             "\t\tNumber of dead animals: [%d] [%s] \n" +
             "\t\tNumber of alive animals: [%d] [%s] \n";
 
-    public Stats(List<? extends Animal> animals, int timeIntervalInSec) {
+    public Stats(List<? extends Animal> animals, int timeIntervalInSec, Lock lock) {
         this.animals = (List<Animal>) animals;
         this.timeIntervalInSec = timeIntervalInSec;
+        this.lock = lock;
     }
 
     public String listAnimals(Predicate<Animal> predicate){
@@ -52,10 +55,6 @@ public class Stats implements Runnable {
                 e.printStackTrace();
             }
 
-            numberOfAnimalsAlive = animals.stream()
-                    .filter(Animal::isAlive)
-                    .count();
-
             //czyszczenie konsoli na Linuxie? może nie być widoczne w IntelliJ czy Eclipse...
             try {
                 System.out.print("\033[H\033[2J");
@@ -64,12 +63,19 @@ public class Stats implements Runnable {
                 e.printStackTrace();
             }
 
+            lock.lock();
+
+            numberOfAnimalsAlive = animals.stream()
+                    .filter(Animal::isAlive)
+                    .count();
+
             //wszystkie, martwe i żywe
             System.out.println(String.format(messagePattern,
                     animals.size(), listAnimals(x -> true),
                     (animals.size() - numberOfAnimalsAlive), listAnimals(animal -> !animal.isAlive()),
                     numberOfAnimalsAlive, listAnimals(Animal::isAlive)));
 
+            lock.unlock();
         }
     }
 }
