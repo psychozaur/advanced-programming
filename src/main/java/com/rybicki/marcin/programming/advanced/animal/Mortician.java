@@ -15,7 +15,7 @@ public class Mortician implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
+        while (animals.size() > 0) {
 
             try {
                 Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));

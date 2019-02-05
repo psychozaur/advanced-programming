@@ -28,7 +28,7 @@ public class ZooWorker implements Runnable {
     @Override
     public void run() {
 
-        while(true){
+        while(animals.size() > 0){
 
             animals.forEach(ZooWorker::feedAnimal);
 

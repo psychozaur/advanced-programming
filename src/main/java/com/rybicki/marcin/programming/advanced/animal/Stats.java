@@ -1,6 +1,11 @@
 package com.rybicki.marcin.programming.advanced.animal;
 
+
+import java.io.IOException;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Stats implements Runnable {
 
@@ -14,55 +19,32 @@ public class Stats implements Runnable {
 
     private long numberOfAnimalsAlive;
 
-    private static String allAnimals;
-    private static String deadAnimals;
-    private static String aliveAnimals;
-
     private static final String messagePattern =
-            "\tNumber of all animals: [%d] " + allAnimals + "\n" +
-            "\t\tNumber of dead animals: [%d] " + deadAnimals + "\n" +
-            "\t\tNumber of alive animals: [%d] " + aliveAnimals + "\n";
+            "\tNumber of all animals: [%d] [%s] \n" +
+            "\t\tNumber of dead animals: [%d] [%s] \n" +
+            "\t\tNumber of alive animals: [%d] [%s] \n";
 
     public Stats(List<? extends Animal> animals, int timeIntervalInSec) {
         this.animals = (List<Animal>) animals;
         this.timeIntervalInSec = timeIntervalInSec;
     }
 
-    public void listAllAnimals(){
+    public String listAnimals(Predicate<Animal> predicate){
 
-        allAnimals += "[";
-        for (Animal animal : animals){
-
-            allAnimals += animal.getName() + " ";
-        }
-        allAnimals += "]";
+        return animals
+                .stream()
+                .filter(predicate)
+                .map(Animal::getName)
+                .flatMap(o -> o.isPresent() ? Stream.of(o.get()) : Stream.empty())
+                .collect(Collectors.joining(", "));
 
     }
 
-    public void listDeadAnimals(){
-
-        deadAnimals += "[";
-        for (Animal animal : animals){
-            if (!animal.isAlive())
-            deadAnimals += animal.getName() + " ";
-        }
-        deadAnimals += "]";
-    }
-
-    public void listAliveAnimals(){
-
-        aliveAnimals += "[";
-        for (Animal animal : animals){
-            if (animal.isAlive())
-            aliveAnimals += animal.getName() + " ";
-        }
-        aliveAnimals += "]";
-    }
 
     @Override
     public void run() {
 
-        while(true){
+        while(animals.size() > 0){
 
             try {
                 Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
@@ -74,19 +56,20 @@ public class Stats implements Runnable {
                     .filter(Animal::isAlive)
                     .count();
 
-            listAllAnimals();
-            listDeadAnimals();
-            listAliveAnimals();
+            //czyszczenie konsoli na Linuxie? może nie być widoczne w IntelliJ czy Eclipse...
+            try {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             //wszystkie, martwe i żywe
             System.out.println(String.format(messagePattern,
-                    animals.size(),
-                    (animals.size() - numberOfAnimalsAlive),
-                    numberOfAnimalsAlive));
+                    animals.size(), listAnimals(x -> true),
+                    (animals.size() - numberOfAnimalsAlive), listAnimals(animal -> !animal.isAlive()),
+                    numberOfAnimalsAlive, listAnimals(Animal::isAlive)));
 
-            allAnimals = "";
-            deadAnimals = "";
-            aliveAnimals = "";
         }
     }
 }

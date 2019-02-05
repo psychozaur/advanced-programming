@@ -2,85 +2,47 @@ package com.rybicki.marcin.programming.advanced.animal;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Main {
 
+    public static List<Animal> getPopulatedAnimalList(Random rng){
+        List<Animal> animals = new ArrayList<>();
+
+        List<String> animalNames = Arrays.asList("Stefan","Żaneta",
+                "Melvin","Kobyła",
+                "Shrek","Fiona",
+                "Benek","Sara");
+
+        for (int i = 0; i < animalNames.size(); i++){
+            animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(90.0 + 10.0*i),
+                                                            i % 2 == 0 ? Sex.MALE : Sex.FEMALE,
+                                                            animalNames.get(i),
+                                                            BigInteger.valueOf(90 + 10*i + rng.nextInt(25)),
+                                                            BigInteger.valueOf(90 + 10*i + rng.nextInt(25)),
+                                                                    BigInteger.valueOf(10 + 2*i + rng.nextInt(5)),
+                                                                    BigInteger.valueOf(10 + 2*i + rng.nextInt(5))));
+        }
+
+        return animals;
+    }
+
     public static void main(String[] args) {
 
         Random rng = new Random();
 
-        List<Animal> animals = new ArrayList<>();
+        List<Animal> animals = getPopulatedAnimalList(rng);
 
-        ZooWorker jas = new ZooWorker(animals,1 + rng.nextInt(10),"Jaś");
-        ZooWorker stas = new ZooWorker(animals,1 + rng.nextInt(10),"Staś");
+        ZooWorker jas = new ZooWorker(animals,10 + rng.nextInt(10),"Jaś");
+        ZooWorker stas = new ZooWorker(animals,10 + rng.nextInt(10),"Staś");
 
-        Stats stats = new Stats(animals,10);
+        Stats stats = new Stats(animals,5);
 
         Metabolism metabolism = new Metabolism(animals,1 + rng.nextInt(5));
 
         Mortician morty = new Mortician(animals,7);
-
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(110.0),
-                                                                        Sex.MALE,
-                                                                "Reksio",
-                                                       BigInteger.valueOf(100 + rng.nextInt(25)),
-                                                        BigInteger.valueOf(100 + rng.nextInt(25)),
-                                                        BigInteger.valueOf(12),
-                                                        BigInteger.valueOf(12)));
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(120.0),
-                Sex.FEMALE,
-                "Sara",
-                BigInteger.valueOf(100 + rng.nextInt(25)),
-                BigInteger.valueOf(100 + rng.nextInt(25)),
-                BigInteger.valueOf(14),
-                BigInteger.valueOf(16)));
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(130.0),
-                Sex.MALE,
-                "Długoszyi",
-                BigInteger.valueOf(100 + rng.nextInt(25)),
-                BigInteger.valueOf(100 + rng.nextInt(25)),
-                BigInteger.valueOf(20),
-                BigInteger.valueOf(20)));
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(90.0),
-                Sex.MALE,
-                "Kark",
-                BigInteger.valueOf(100 + rng.nextInt(25)),
-                BigInteger.valueOf(100 + rng.nextInt(25)),
-                BigInteger.valueOf(22),
-                BigInteger.valueOf(22)));
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(115.0),
-                Sex.MALE,
-                "Benek",
-                BigInteger.valueOf(77 + rng.nextInt(25)),
-                BigInteger.valueOf(76 + rng.nextInt(25)),
-                BigInteger.valueOf(14),
-                BigInteger.valueOf(14)));
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(110.0),
-                Sex.FEMALE,
-                "Żaneta",
-                BigInteger.valueOf(150 + rng.nextInt(25)),
-                BigInteger.valueOf(120 + rng.nextInt(25)),
-                BigInteger.valueOf(20),
-                BigInteger.valueOf(24)));
-
-        animals.add(Giraffe.createGiraffeWithEverything(BigDecimal.valueOf(100.0),
-                Sex.MALE,
-                "Burek",
-                BigInteger.valueOf(88 + rng.nextInt(25)),
-                BigInteger.valueOf(94 + rng.nextInt(25)),
-                BigInteger.valueOf(20),
-                BigInteger.valueOf(16)));
 
         // 1st way
         Thread one = new Thread(metabolism);
@@ -103,6 +65,8 @@ public class Main {
         workers.execute(three);
         workers.execute(four);
         workers.execute(five);
+
+        workers.shutdown();
 
     }
 
