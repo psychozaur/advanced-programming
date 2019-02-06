@@ -40,24 +40,24 @@ public class ZooWorker implements Runnable {
 
             lock.lock();
 
-            try {
-                isBusy.await(timeInSec, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                isBusy.await(timeInSec, TimeUnit.SECONDS);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
             animals.forEach(ZooWorker::feedAnimal);
 
-            isBusy.signal();
+//            isBusy.signal();
 
             lock.unlock();
 
 
-//            try {
-//                Thread.sleep(Utils.convertSecToMs(timeInSec));
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                Thread.sleep(Utils.convertSecToMs(timeInSec));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
         }
 

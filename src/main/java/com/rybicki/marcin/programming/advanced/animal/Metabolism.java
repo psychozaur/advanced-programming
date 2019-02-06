@@ -27,23 +27,23 @@ public class Metabolism implements Runnable {
 
         while (animals.size() > 0){
 
-//            try {
-//                Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-
-            lock.lock();
-
             try {
-                isBusy.await(timeIntervalInSec,TimeUnit.SECONDS);
+                Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
+            lock.lock();
+
+//            try {
+//                isBusy.await(timeIntervalInSec,TimeUnit.SECONDS);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
             animals.forEach((Animal::consumeCalories));
 
-            isBusy.signal();
+//            isBusy.signal();
 
             lock.unlock();
 

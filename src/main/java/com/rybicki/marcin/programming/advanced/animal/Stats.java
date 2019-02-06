@@ -53,11 +53,11 @@ public class Stats implements Runnable {
 
         while(animals.size() > 0){
 
-//            try {
-//                Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             //czyszczenie konsoli na Linuxie? może nie być widoczne w IntelliJ czy Eclipse...
             try {
@@ -69,11 +69,11 @@ public class Stats implements Runnable {
 
             lock.lock();
 
-            try {
-                isBusy.await(timeIntervalInSec, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                isBusy.await(timeIntervalInSec, TimeUnit.SECONDS);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
             numberOfAnimalsAlive = animals.stream()
                     .filter(Animal::isAlive)
@@ -85,7 +85,7 @@ public class Stats implements Runnable {
                     (animals.size() - numberOfAnimalsAlive), listAnimals(animal -> !animal.isAlive()),
                     numberOfAnimalsAlive, listAnimals(Animal::isAlive)));
 
-            isBusy.signal();
+//            isBusy.signal();
 
             lock.unlock();
 
