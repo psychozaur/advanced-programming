@@ -3,6 +3,8 @@ package com.rybicki.marcin.programming.advanced.animal;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -18,6 +20,7 @@ public class Stats implements Runnable {
     private Lock lock;
     private final List<Animal> animals;
     private final int timeIntervalInSec;
+    private final Condition isBusy;
 
     private long numberOfAnimalsAlive;
 
@@ -26,10 +29,11 @@ public class Stats implements Runnable {
             "\t\tNumber of dead animals: [%d] [%s] \n" +
             "\t\tNumber of alive animals: [%d] [%s] \n";
 
-    public Stats(List<? extends Animal> animals, int timeIntervalInSec, Lock lock) {
+    public Stats(List<? extends Animal> animals, int timeIntervalInSec, Lock lock, Condition isBusy) {
         this.animals = (List<Animal>) animals;
         this.timeIntervalInSec = timeIntervalInSec;
         this.lock = lock;
+        this.isBusy = isBusy;
     }
 
     public String listAnimals(Predicate<Animal> predicate){
@@ -49,11 +53,11 @@ public class Stats implements Runnable {
 
         while(animals.size() > 0){
 
-            try {
-                Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Thread.sleep(Utils.convertSecToMs(timeIntervalInSec));
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
             //czyszczenie konsoli na Linuxie? może nie być widoczne w IntelliJ czy Eclipse...
             try {
@@ -65,6 +69,12 @@ public class Stats implements Runnable {
 
             lock.lock();
 
+            try {
+                isBusy.await(timeIntervalInSec, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             numberOfAnimalsAlive = animals.stream()
                     .filter(Animal::isAlive)
                     .count();
@@ -75,7 +85,10 @@ public class Stats implements Runnable {
                     (animals.size() - numberOfAnimalsAlive), listAnimals(animal -> !animal.isAlive()),
                     numberOfAnimalsAlive, listAnimals(Animal::isAlive)));
 
+            isBusy.signal();
+
             lock.unlock();
+
         }
     }
 }

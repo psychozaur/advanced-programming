@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -35,16 +36,17 @@ public class Main {
 
         Random rng = new Random();
         Lock lock = new ReentrantLock();
+        Condition isBusy = lock.newCondition();
         List<Animal> animals = getPopulatedAnimalList(rng);
 
-        ZooWorker jas = new ZooWorker(animals,10 + rng.nextInt(10),"Jaś",lock);
-        ZooWorker stas = new ZooWorker(animals,10 + rng.nextInt(10),"Staś",lock);
+        ZooWorker jas = new ZooWorker(animals,10 + rng.nextInt(10),"Jaś",lock,isBusy);
+        ZooWorker stas = new ZooWorker(animals,10 + rng.nextInt(10),"Staś",lock,isBusy);
 
-        Stats stats = new Stats(animals,5,lock);
+        Stats stats = new Stats(animals,5,lock,isBusy);
 
-        Metabolism metabolism = new Metabolism(animals,1 + rng.nextInt(5),lock);
+        Metabolism metabolism = new Metabolism(animals,1 + rng.nextInt(5),lock,isBusy);
 
-        Mortician morty = new Mortician(animals,7,lock);
+        Mortician morty = new Mortician(animals,7,lock,isBusy);
 
         // 1st way
         Thread one = new Thread(metabolism);
