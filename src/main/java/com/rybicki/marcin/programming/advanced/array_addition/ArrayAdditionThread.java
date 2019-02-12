@@ -1,5 +1,6 @@
 package com.rybicki.marcin.programming.advanced.array_addition;
 
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 public class ArrayAdditionThread implements Runnable {
@@ -7,7 +8,7 @@ public class ArrayAdditionThread implements Runnable {
     private long[] array;
     private long[] partialArray;
 
-    public long sum;
+    private long sum;
 
     private int numberOfThreads;
 
@@ -15,26 +16,35 @@ public class ArrayAdditionThread implements Runnable {
     private int startPos;
     private int ordinal;
 
-    private Object lock;
+    private Lock lock;
+    private Condition condition;
 
-    public ArrayAdditionThread(long[] array, int numberOfThreads, int ordinal, Object lock) {
+    public ArrayAdditionThread(long[] array, int numberOfThreads, int ordinal, Lock lock, Condition condition) {
         this.array = array;
         this.numberOfThreads = numberOfThreads;
         this.startPos = 0;
         this.ordinal = ordinal;
         this.lock = lock;
+        this.condition = condition;
         setLengthDistribution();
+    }
+
+    public long getSum() {
+        return sum;
     }
 
     private void setLengthDistribution() {
         distribution = new int[numberOfThreads];
-        for (int i = 0; i < numberOfThreads; i++){
-            if (i == 0){
-                distribution[i] = (array.length / numberOfThreads) + (array.length % numberOfThreads);
-            } else {
-                distribution[i] = array.length / numberOfThreads;
+        int count = array.length;
+        int i = 0;
+
+            while(count > 0){
+
+                distribution[i % numberOfThreads] += 1;
+
+                i++;
+                count--;
             }
-        }
     }
 
     private int calculateStartPosition(int ordinal){
@@ -55,47 +65,45 @@ public class ArrayAdditionThread implements Runnable {
 
         startPos = calculateStartPosition(ordinal);
 
-        synchronized (lock){
-
             System.arraycopy(array,startPos,partialArray,0,distribution[ordinal]);
 
-            lock.notify();
-
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
 
 
     }
 
     public long performArrayAddition(long[] array, int numberOfThreads){
-        long result = 0;
-
-        synchronized (lock){
 
             for (long value : array){
-                result += value;
+                sum += value;
             }
 
-            lock.notify();
 
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return result;
+        return sum;
     }
 
     @Override
     public void run() {
+
+        lock.lock();
+        try{
+            condition.signalAll();
+
             copyArray();
             sum = performArrayAddition(this.partialArray, this.numberOfThreads);
             System.out.println(sum);
+
+            try {
+                condition.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } finally {
+            lock.unlock();
+        }
+
+
+
+
+
     }
 }

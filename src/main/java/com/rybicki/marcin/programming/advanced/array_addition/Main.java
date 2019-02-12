@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -11,22 +12,32 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Object lock = new Object();
+        Lock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
 
-        long[] array = {1,2,3,4,5,6,7,8,9,10};
-        int numberOfThreads = 3;
+        long[] array = new long[1000];
+
+        for (int i = 0; i < array.length; i++){
+            array[i] = i + 1;
+        }
+        int numberOfThreads = 50;
 
         List<ArrayAdditionThread> threadList = new ArrayList<>();
 
         for (int i = 0; i < numberOfThreads; i++){
-            threadList.add(new ArrayAdditionThread(array,numberOfThreads,i,lock));
+            threadList.add(new ArrayAdditionThread(array,numberOfThreads,i,lock,condition));
         }
 
-        ExecutorService workers = Executors.newFixedThreadPool(numberOfThreads);
+        FinalAdditionThread finalCountdown = new FinalAdditionThread(threadList, lock,condition);
+
+        ExecutorService workers = Executors.newFixedThreadPool(numberOfThreads + 1);
 
         for (ArrayAdditionThread worker : threadList){
             workers.execute(worker);
         }
+
+        if (threadList.stream().filter(t -> t.getSum() == 0).count() == 0)
+        workers.execute(finalCountdown);
 
         workers.shutdown();
     }
